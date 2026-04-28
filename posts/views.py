@@ -1,11 +1,31 @@
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Post
+from .models import Post, Like
 
 def post_like(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    post.likes.add(request.user)
-    return JsonResponse({'status': 'liked', 'likes': post.likes.count()})
+
+    if request.user.is_authenticated:
+        like_filter = {'post': post, 'user': request.user}
+    else:
+        # ensure session exists
+        if not request.session.session_key: 
+            request.session.create()
+        anon_id = request.session.session_key
+        like_filter = {'post': post, 'anon_id': anon_id}
+
+    like, created = Like.objects.get_or_create(**like_filter)
+
+    if not created:
+        like.delete()
+        liked = False
+    else:
+        liked = True
+
+    return JsonResponse({
+        'liked': liked,
+        'likes': post.likes.count()
+    })
 
 def post_detail(request, post_id):
     """View a single post"""

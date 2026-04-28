@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.urls import reverse #Used to generate URLs by reversing the URL patterns
 from group.models import Album, Group
 import os
+import subprocess
 
 def upload_to_artist_folder(instance, filename):
     # Normalize the artist name to be used as a folder name
@@ -84,20 +85,83 @@ class AudioFile(models.Model):
             """Returns the url to access a detail record for this install."""
             
             return reverse('audiofile', args=[str(self.pk)])
+    
+def upload_to_videos_folder(instance, filename):
+    """Upload videos to /media/videos/"""
+    return os.path.join('videos', filename)
 
 class Video(models.Model):
-    VIDEO_TYPE_CHOICES = [
-        ('youtube', 'YouTube'),
-        ('uploaded', 'Uploaded'),
-    ]
-
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
-    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, help_text='Group')
-    video_type = models.CharField(max_length=10, choices=VIDEO_TYPE_CHOICES)
-    youtube_url = models.URLField(blank=True, null=True)  # For YouTube videos
-    video_file = models.FileField(upload_to=upload_to_artist_folder3, blank=True, null=True, max_length=180, help_text='TrackName.mp4')  # For uploaded videosmodels.FileField(upload_to=upload_to_artist_folder2, null=True, blank=True, max_length=180, help_text='TrackName.mp3')
+    group = models.ForeignKey(
+        Group,  # Changed from 'Group' to Group (no quotes)
+        on_delete=models.SET_NULL, 
+        null=True,
+        blank=True,  # Add this
+        help_text='Group'
+    )
+    video_file = models.FileField(
+        upload_to=upload_to_videos_folder,
+        max_length=255,
+        blank=True,  # Add this
+        null=True,   # Add this
+        help_text='Upload video file (mp4, mov, webm, ogg)'
+    )
+    thumbnail = models.ImageField(
+        upload_to='videos/thumbnails/',
+        blank=True,
+        null=True,
+        help_text='Auto-generated thumbnail'
+    )
     published_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-published_date']
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        """Auto-generate thumbnail when video is saved"""
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
+        if self.video_file and not self.thumbnail:
+            self.generate_thumbnail()
+
+    def generate_thumbnail(self):
+        """Generate thumbnail from video file using ffmpeg"""
+        if not self.video_file:
+            return False
+
+        video_path = self.video_file.path
+        
+        video_basename = os.path.basename(video_path)
+        thumb_filename = os.path.splitext(video_basename)[0] + '_thumb.jpg'
+        thumb_relative = os.path.join('videos', 'thumbnails', thumb_filename)
+        thumb_path = os.path.join(settings.MEDIA_ROOT, thumb_relative)
+
+        os.makedirs(os.path.dirname(thumb_path), exist_ok=True)
+
+        try:
+            subprocess.run([
+                'ffmpeg',
+                '-i', video_path,
+                '-ss', '00:00:01',
+                '-vframes', '1',
+                '-vf', 'scale=1200:630:force_original_aspect_ratio=decrease',
+                '-q:v', '2',
+                '-y',
+                thumb_path
+            ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
+
+            self.thumbnail = thumb_relative
+            super().save(update_fields=['thumbnail'])
+            return True
+
+        except subprocess.CalledProcessError as e:
+            print(f"Error generating thumbnail for {self.title}: {e}")
+            return False
+        except Exception as e:
+            print(f"Unexpected error generating thumbnail: {e}")
+            return False

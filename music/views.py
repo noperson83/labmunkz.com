@@ -202,15 +202,99 @@ def MusicDeView(request, id):
              }, 
     )
 
+from urllib.parse import unquote
+
 def video_list(request):
+    """
+    Display video list combining:
+    1. Videos from Video model (uploaded via admin)
+    2. Legacy videos from /media/videos folder (uploaded via FileZilla)
+    """
+    
+    # Get videos from database (uploaded via admin)
+    db_videos = Video.objects.all().order_by('-published_date')
+    
+    # Get legacy videos from filesystem
     video_folder = os.path.join(settings.MEDIA_ROOT, 'videos')
+    legacy_videos = []
+    
     if os.path.exists(video_folder):
-        videos = [
-            'videos/' + f for f in os.listdir(video_folder)
+        video_files = [
+            f for f in os.listdir(video_folder)
             if f.lower().endswith(('.mp4', '.mov', '.webm', '.ogg'))
+            and not f.endswith('_thumb.jpg')  # Exclude thumbnails
         ]
-    else:
-        videos = []
-    ytvideos = Video.objects.all().order_by('-published_date')
-    context = {'ytvideos': ytvideos, 'videos': videos}
+        
+        video_files.sort(
+            key=lambda f: os.path.getmtime(os.path.join(video_folder, f)),
+            reverse=True
+        )
+        
+        legacy_videos = ['videos/' + f for f in video_files]
+    
+    # Combine both sources for display
+    # Format: list of dicts with unified structure
+    all_videos = []
+    
+    # Add database videos
+    for video in db_videos:
+        all_videos.append({
+            'type': 'db',
+            'title': video.title,
+            'url': video.video_file.url if video.video_file else '',
+            'thumbnail': video.thumbnail.url if video.thumbnail else '/media/LABSHOCK.jpg',
+            'slug': f'db-{video.pk}',
+            'path': video.video_file.url if video.video_file else '',
+        })
+    
+    # Add legacy filesystem videos
+    for video_path in legacy_videos:
+        filename = os.path.basename(video_path)
+        title = os.path.splitext(filename)[0].replace('_', ' ').replace('-', ' ')
+        
+        # Look for corresponding thumbnail
+        thumb_name = os.path.splitext(filename)[0] + '_thumb.jpg'
+        thumb_path = os.path.join(video_folder, 'thumbnails', thumb_name)
+        
+        if os.path.exists(thumb_path):
+            thumbnail = f'/media/videos/thumbnails/{thumb_name}'
+        else:
+            thumbnail = '/media/LABSHOCK.jpg'
+        
+        all_videos.append({
+            'type': 'legacy',
+            'title': title,
+            'url': f'/media/{video_path}',
+            'thumbnail': thumbnail,
+            'slug': filename,
+            'path': f'/media/{video_path}',
+        })
+    
+    # Selected video from ?v=... parameter
+    selected_slug = request.GET.get('v')
+    selected_video = None
+    
+    if selected_slug:
+        # Find the selected video
+        for video in all_videos:
+            if video['slug'] == selected_slug:
+                selected_video = video
+                break
+    
+    # Default to first video if none selected
+    if not selected_video and all_videos:
+        selected_video = all_videos[0]
+    
+    # Determine OG image for social sharing
+    og_image = selected_video['thumbnail'] if selected_video else '/media/LABSHOCK.jpg'
+    og_title = selected_video['title'] if selected_video else 'Video Gallery'
+    
+    context = {
+        'all_videos': all_videos,
+        'selected_video': selected_video,
+        'current_video': selected_slug,
+        'og_image': og_image,
+        'og_title': og_title,
+    }
+    
     return render(request, 'videos.html', context)

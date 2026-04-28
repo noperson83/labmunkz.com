@@ -1,9 +1,62 @@
 {% extends "home/base.html" %}
 {% load static %}
-{% block title %}<title>Music Details</title>{% endblock %}
-{% block scripter %}
-    <script src="{% static 'home/js/albumplayer.js' %}"></script>
+
+{% block title %}
+<title>{{ music_detail.title }} - {{ music_detail.artist }} | Lab Munkz Ink</title>
+<meta property="og:title" content="{{ music_detail.title }} by {{ music_detail.artist }}">
+<meta property="og:description" content="Listen to {{ music_detail.title }} from {{ music_detail.group_album }}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:type" content="music.song">
+<meta property="og:image" content="https://labmunkzink.com{% if music_detail.album_art %}{{ music_detail.album_art.url }}{% else %}{% static '/home/images/LMNlogo.jpg' %}{% endif %}">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="music:musician" content="{{ music_detail.artist }}">
+<meta property="music:album" content="{{ music_detail.group_album }}">
+{% if music_detail.year %}<meta property="music:release_date" content="{{ music_detail.year }}">{% endif %}
 {% endblock %}
+
+{% block scripter %}
+<script src="{% static 'home/js/albumplayer.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const pageUrl = "{{ request.build_absolute_uri }}";
+  const trackTitle = "{{ music_detail.title|escapejs }}";
+  const trackArtist = "{{ music_detail.artist|escapejs }}";
+  const shareText = `Check out "${trackTitle}" by ${trackArtist}`;
+  
+  // Copy Link Button
+  const copyLinkBtn = document.getElementById('copyLinkBtn');
+  if (copyLinkBtn) {
+    copyLinkBtn.addEventListener('click', function() {
+      if (!navigator.clipboard) {
+        alert('Clipboard not supported.');
+        return;
+      }
+      navigator.clipboard.writeText(pageUrl)
+        .then(() => alert('Link copied!'))
+        .catch(() => alert('Could not copy link.'));
+    });
+  }
+  
+  // Native Share Button
+  const nativeShareBtn = document.getElementById('nativeShareBtn');
+  if (nativeShareBtn) {
+    nativeShareBtn.addEventListener('click', function() {
+      if (!navigator.share) {
+        alert("Your browser doesn't support native sharing.");
+        return;
+      }
+      navigator.share({
+        title: `${trackTitle} - ${trackArtist}`,
+        text: shareText,
+        url: pageUrl,
+      }).catch(() => {});
+    });
+  }
+});
+</script>
+{% endblock %}
+
 {% block content %}
 
 <button id="analyzeAudio">Analyze Audio</button>
@@ -51,6 +104,30 @@
                     </div>
                   </div>
                 </div>
+                
+                <!-- Share Buttons -->
+                <div class="share-buttons" style="margin-top: 10px;">
+                  {% with page_url=request.build_absolute_uri %}
+                    <a id="shareFacebook"
+                       href="https://www.facebook.com/sharer/sharer.php?u={{ page_url|urlencode }}"
+                       target="_blank" rel="noopener noreferrer">
+                       Share on Facebook
+                    </a>
+                    <a id="shareX"
+                       href="https://twitter.com/intent/tweet?url={{ page_url|urlencode }}&text={{ music_detail.title|add:' by '|add:music_detail.artist|urlencode }}"
+                       target="_blank" rel="noopener noreferrer">
+                       Share on X
+                    </a>
+                    <a id="shareReddit"
+                       href="https://www.reddit.com/submit?url={{ page_url|urlencode }}&title={{ music_detail.title|add:' by '|add:music_detail.artist|urlencode }}"
+                       target="_blank" rel="noopener noreferrer">
+                       Share on Reddit
+                    </a>
+                  {% endwith %}
+                  <button id="copyLinkBtn" type="button">Copy Link</button>
+                  <button id="nativeShareBtn" type="button">Share</button>
+                </div>
+                
     </div>
     <div id="video-presentation">
       <table>
@@ -133,4 +210,4 @@
     </div>
   </div>
 </div>
-{% endblock %}   
+{% endblock %}

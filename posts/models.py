@@ -39,7 +39,14 @@ class Audio(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
 class Like(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
+    anon_id = models.CharField(max_length=64, null=True, blank=True)
+
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")
     created_at = models.DateTimeField(auto_now_add=True)
 
