@@ -29,6 +29,7 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['labmunkz.com', 'www.labmunkz.com', '137.184.125.117', 'localhost', '127.0.0.1'])
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['http://137.184.125.117:6969', 'http://labmunkz.com', 'http://www.labmunkz.com'])
 
 AUTH_USER_MODEL = 'munkz.ArtistProfile'
 
