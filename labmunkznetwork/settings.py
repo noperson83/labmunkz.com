@@ -17,20 +17,22 @@ import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 #BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = Path(__file__).resolve().parent.parent
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / '.env')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&6=puxxn_1x^8ob2$t@(@7avuihy(@ri8set=fx8_c_^qma&6-'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['.labmunkzink.com', 'www.labmunkzink.com', '.labmunkz.com', 'www.labmunkz.com', 'labmunkzart.com', 'www.labmunkzart.com', '104.248.214.235', 'localhost', 'www.jivinscientists.com', '.jivinscientists.com', 'jivinscientists.com',]
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['labmunkz.com', 'www.labmunkz.com', '137.184.125.117', 'localhost', '127.0.0.1'])
 
 AUTH_USER_MODEL = 'munkz.ArtistProfile'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=False)
 # or specify the allowed origins
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -106,14 +108,7 @@ WSGI_APPLICATION = 'labmunkznetwork.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'labmunkzink',
-        'USER': 'labmunk',
-        'PASSWORD': 'L0vat0L0ve',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': env.db('DATABASE_URL')
 }
 
 # Password validation
@@ -139,21 +134,19 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'MST'
+TIME_ZONE = env('TIME_ZONE', default='America/Phoenix')
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media settings
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Maximum upload size in bytes (20MB)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20MB
@@ -163,8 +156,6 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20MB
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-env = environ.Env()
-environ.Env.read_env()
 
 #EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #EMAIL_HOST = 'smtp.gmail.com'
@@ -172,5 +163,5 @@ environ.Env.read_env()
 #EMAIL_USE_TLS = True
 #MAIL_USE_SSL = False
 #EMAIL_HOST_USER = 'letsreaddad@gmail.com'
-#EMAIL_HOST_PASSWORD = 'hrjq hjrp nwtx qfud'
+#EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 #DEFAULT_FROM_EMAIL = 'letsreaddad@gmail.com'

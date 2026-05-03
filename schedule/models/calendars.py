@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from schedule.settings import USE_FULLCALENDAR
 from schedule.utils import EventListManager
@@ -225,7 +225,7 @@ class CalendarRelation(models.Model):
     class Meta(object):
         verbose_name = _('calendar relation')
         verbose_name_plural = _('calendar relations')
-        index_together = [('content_type', 'object_id')]
+        indexes = [models.Index(fields=['content_type', 'object_id'])]
 
     def __str__(self):
         return '%s - %s' % (self.calendar, self.content_object)

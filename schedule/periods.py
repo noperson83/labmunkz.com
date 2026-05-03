@@ -9,7 +9,7 @@ from django.db.models.query import prefetch_related_objects
 from django.template.defaultfilters import date as date_filter
 from django.utils import timezone
 from django.utils.dates import WEEKDAYS, WEEKDAYS_ABBR
-from django.utils.translation import ugettext
+from django.utils.translation import gettext as ugettext
 
 from schedule.models import Occurrence
 from schedule.settings import SHOW_CANCELLED_OCCURRENCES

@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.contrib.staticfiles.urls import static
 from django.conf import settings
-from django.conf.urls import url
+from django.urls import re_path as url
 
 admin.site.site_header = "Labmunkz Network"
 admin.site.index_title = "Database administration configuration."

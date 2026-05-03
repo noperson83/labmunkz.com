@@ -8,6 +8,10 @@ class Migration(migrations.Migration):
 
     initial = True
 
+    dependencies = [
+        ('group', '0001_initial'),
+    ]
+
     operations = [
         migrations.CreateModel(
             name='ArtistProfile',

@@ -12,8 +12,8 @@ from django.db.models import Q
 from django.template.defaultfilters import date
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext as ugettext
+from django.utils.translation import gettext_lazy as _
 
 
 from project.models import Project
@@ -100,9 +100,7 @@ class Event(models.Model):
     class Meta(object):
         verbose_name = _('event')
         verbose_name_plural = _('events')
-        index_together = (
-            ('start', 'end'),
-        )
+        indexes = [models.Index(fields=['start', 'end'])]
 
     def __str__(self):
         return ugettext('%(title)s: %(start)s - %(end)s') % {
@@ -567,7 +565,7 @@ class EventRelation(models.Model):
     class Meta(object):
         verbose_name = _("event relation")
         verbose_name_plural = _("event relations")
-        index_together = [('content_type', 'object_id')]
+        indexes = [models.Index(fields=['content_type', 'object_id'])]
 
     def __str__(self):
         return '%s(%s)-%s' % (self.event.title, self.distinction, self.content_object)
@@ -589,9 +587,7 @@ class Occurrence(models.Model):
     class Meta(object):
         verbose_name = _("occurrence")
         verbose_name_plural = _("occurrences")
-        index_together = (
-            ('start', 'end'),
-        )
+        indexes = [models.Index(fields=['start', 'end'])]
 
     def __init__(self, *args, **kwargs):
         super(Occurrence, self).__init__(*args, **kwargs)

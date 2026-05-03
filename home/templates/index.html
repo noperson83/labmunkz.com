@@ -247,6 +247,7 @@ LOOK AT ALL THE STARS OUT TONIGHT.</p>
             {% endfor %}
         </section>
         <aside class="right-sidebar">
+            {% if doll_hair %}
             <div class="card">
                 <div class="controls">
                     <button class="song-title-btn" id="songTitle">{{ doll_hair.0.title }}</button>
@@ -299,6 +300,14 @@ LOOK AT ALL THE STARS OUT TONIGHT.</p>
                     </div>
                 </div>
             </div>
+            {% else %}
+            <div class="card">
+                <div class="controls">
+                    <button class="song-title-btn" id="songTitle">LabMunkz Radio</button>
+                </div>
+                <div class="playlist">There are no songs to list yet.</div>
+            </div>
+            {% endif %}
         </aside>
     </div>
 </div>

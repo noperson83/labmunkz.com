@@ -14,3 +14,39 @@ db.sqlite3
 
 *.log
 .DS_Store
+
+# Labmunkz deploy/runtime artifacts
+.env
+*.env
+!.env.example
+.venv/
+venv/
+env/
+lbienv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+logs/
+*.log
+*.sql
+*.dump
+*.bak
+*.backup
+
+# Audio/video assets stay outside Git
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.aiff
+*.mp4
+*.mov
+*.avi
+*.webm
+*.m4a
+*.zip
+*.tar
+*.gz

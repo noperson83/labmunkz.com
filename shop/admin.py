@@ -94,7 +94,6 @@ class BusinessPurchaseItemInline(admin.TabularInline):
 @admin.register(BusinessPurchase)
 class BusinessPurchaseAdmin(admin.ModelAdmin):
     list_display = ('invoice_number', 'purchased_from', 'purchase_total', 'purchase_date')
-    filter_horizontal = ('product_sizes',)  # Optional for ManyToManyField
     inlines = [BusinessPurchaseItemInline]
 
 @admin.register(BusinessPurchaseItem)
